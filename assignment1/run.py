@@ -1,4 +1,4 @@
-from compiler import CCompiler()
+from compiler import CCompiler
 
 init = CCompiler()
 init.run()

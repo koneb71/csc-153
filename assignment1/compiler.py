@@ -14,7 +14,7 @@ class CCompiler(object):
         self.tokenize_list = []
 
     def get_filename(self):
-        filename = raw_input("Enter File name: ")
+        filename = raw_input("Enter File name (E.g. 'code.txt'): ")
         if filename == 'exit':
             self.running = False
         self.text = '\n'.join(open(filename, 'r').readlines())
