@@ -101,7 +101,3 @@ class CCompiler(object):
                 self.select_index()
             except:
                 print("Wrong Input!")
-
-
-init = CCompiler()
-init.run()
