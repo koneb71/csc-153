@@ -11,57 +11,97 @@ class CCompiler(object):
         self.text = ''
         self.checker = SyntaxChecker()
         self.running = True
+        self.tokenize_list = []
 
-    def get_input(self):
+    def get_filename(self):
         filename = raw_input("Enter File name: ")
         if filename == 'exit':
             self.running = False
-        self.text = ' '.join(open(filename, 'r').readlines()).replace("\n", '')
+        self.text = '\n'.join(open(filename, 'r').readlines())
         print(self.text)
+
+    def select_index(self):
+        select = raw_input("Select Index: ")
+        if select == 'exit' or select.isalpha():
+            self.running = False
+        else:
+            selected = self.tokenize_list[int(select)]
+            print(list_of_keywords[selected[0]][selected[1]])
+
+    def pop_cleaned_text(self):
+        text = self.stack_list.pop()
+        if ';' in text:
+            self.tokenize_list.append(('symbol', global_symbols.index(';')))
+        return text.replace("  ", '').replace(';', '').replace('"', '').replace("'", '')
 
     def check(self):
         return self.checker.is_balance(self.text)
 
     def tokenize(self):
-        token_list = self.text.split(" ")
+        token_list = self.text.split("\n")
         cleaned_token_list = remove_emptys(token_list)
-        for text in cleaned_token_list: self.stack_list.push(text)
 
-    def print_syntax(self):
+        for text in cleaned_token_list:
+            if '"' in text or "'" in text:
+                if '"' in text:
+                    cleaned_string = text.split('"')[1]
+                    self.stack_list.push(cleaned_string)
+                if "'" in text:
+                    cleaned_string = text.split("'")[1]
+                    self.stack_list.push(cleaned_string)
+            else:
+                for string in text.split(' '):
+                    self.stack_list.push(string)
+        self.stack_list.remove_empties()
+
+    def tokenize_syntax(self):
         while not self.stack_list.isempty():
-            text = cleaned_text(self.stack_list.pop())
+            text = self.pop_cleaned_text()
             if text in keywords:
-                print('System Command: %s' % text)
+                self.tokenize_list.append(('reservedKeyword', global_keywords.index(text)))
             elif text in brackets:
                 if self.checker.is_closing(text):
-                    print('Close Bracket: %s' % text)
+                    self.tokenize_list.append(('symbol', global_symbols.index(text)))
                 elif self.checker.is_opening(text):
-                    print('Open Bracket: %s' % text)
+                    self.tokenize_list.append(('symbol', global_symbols.index(text)))
             elif self.checker.is_function_name(text):
-                print('Function: %s' % text)
+                if not text in functions:
+                    functions.append(text)
+                self.tokenize_list.append(('function', functions.index(text)))
             elif text in symbols:
-                print('Symbols: %s' % text)
+                self.tokenize_list.append(('symbol', global_symbols.index(text)))
             elif text in datatype:
-                print('Datatype: %s' % text)
+                self.tokenize_list.append(('datatype', datatype.index(text)))
             elif text in operators:
-                print('Operators: %s' % text)
+                self.tokenize_list.append(('operator', operators.index(text)))
             elif text in loop:
-                print('Loop: %s' % text)
+                self.tokenize_list.append(('reservedKeyword', global_keywords.index(text)))
             elif text in returned:
-                print('Return function: %s' % text)
+                self.tokenize_list.append(('reservedKeyword', global_keywords.index(text)))
             elif self.checker.is_number(text) or self.checker.is_float(text):
-                print('Number: %s' % text)
+                if not text in numbers:
+                    numbers.append(text)
+                self.tokenize_list.append(('number', numbers.index(text)))
             elif isinstance(text, str):
-                print('Text: %s' % text)
+                if not text in strings:
+                    strings.append(text)
+                self.tokenize_list.append(('string', strings.index(text)))
 
     def run(self):
+        self.get_filename()
+        if self.check():
+            print("Correct Syntax")
+            self.tokenize()
+            self.tokenize_syntax()
+        else:
+            print("Syntax Error")
+        print(self.tokenize_list)
         while self.running:
-            self.get_input()
-            if self.check():
-                print("Correct Syntax")
-                self.tokenize()
-                self.print_syntax()
-            else: print("Syntax Error")
+            try:
+                self.select_index()
+            except:
+                print("Wrong Input!")
+
 
 init = CCompiler()
 init.run()

@@ -17,3 +17,6 @@ class ListStack:
 
     def pop(self):
         return self._data.pop()
+
+    def remove_empties(self):
+        self._data = filter(len, filter(None, self._data))
